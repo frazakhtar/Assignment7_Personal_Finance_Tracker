@@ -1,11 +1,12 @@
 import React from 'react'
+import Navbar from './Components/NavBar/NavBar'
+import {BrowserRouter} from 'react-router-dom'
 function App() {
   return (
     <div className="App">
-      <ul>
-        <li>dummy list</li>
-        <li>Eslint check</li>
-      </ul>
+      <BrowserRouter>
+        <Navbar />
+      </BrowserRouter>
     </div>
   )
 }
