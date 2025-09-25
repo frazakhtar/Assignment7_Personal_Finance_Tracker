@@ -42,7 +42,7 @@ const Navbar = () => {
         </Typography>
         <Box sx={{display: {xs: 'none', md: 'flex'}}}>
           <Button color="inherit" component={Link} to="/">
-            Home
+            Dashboard
           </Button>
           <Button color="inherit" component={Link} to="/transaction">
             Transaction
@@ -104,7 +104,7 @@ const Navbar = () => {
           >
             <MenuList sx={{m: 0.5, p: 0.5}} onClick={() => closeMenu()}>
               <MenuItem component={Link} to="/">
-                Home
+                Dashboard
               </MenuItem>
               <MenuItem component={Link} to="/transaction">
                 Transaction
