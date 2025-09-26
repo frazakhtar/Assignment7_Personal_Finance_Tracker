@@ -1,7 +1,263 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TextField,
+  Typography,
+  TableSortLabel,
+  CircularProgress,
+} from '@mui/material'
+import {Edit, Delete} from '@mui/icons-material'
+import {
+  getTransactions,
+  addTransaction,
+  updateTransaction,
+  deleteTransaction,
+} from '../../api/transactions'
 
-const Transaction = () => {
-  return <div>Transaction</div>
+// Utility for sorting
+const getComparator = (order, orderBy) => {
+  return order === 'desc'
+    ? (a, b) => (b[orderBy] < a[orderBy] ? -1 : 1)
+    : (a, b) => (a[orderBy] < b[orderBy] ? -1 : 1)
 }
 
-export default Transaction
+const TransactionManager = () => {
+  const [transactions, setTransactions] = useState([])
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [editingId, setEditingId] = useState(null)
+  const [form, setForm] = useState({
+    type: 'Expense',
+    amount: '',
+    category: '',
+    date: '',
+    description: '',
+  })
+
+  const [order, setOrder] = useState('asc')
+  const [orderBy, setOrderBy] = useState('date')
+
+  // Delete confirmation state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteId, setDeleteId] = useState(null)
+
+  useEffect(() => {
+    getTransactions()
+      .then((res) => setTransactions(res.data))
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleChange = (e) => {
+    setForm({...form, [e.target.name]: e.target.value})
+  }
+
+  const handleOpen = (transaction = null) => {
+    if (transaction) {
+      setEditingId(transaction.id)
+      setForm(transaction)
+    } else {
+      setEditingId(null)
+      setForm({
+        type: 'Expense',
+        amount: '',
+        category: '',
+        date: '',
+        description: '',
+        currency: '$',
+      })
+    }
+    setOpen(true)
+  }
+
+  const handleClose = () => setOpen(false)
+
+  const handleSave = async () => {
+    if (editingId) {
+      const res = await updateTransaction(editingId, form)
+      setTransactions(
+        transactions.map((t) => (t.id === editingId ? res.data : t))
+      )
+    } else {
+      const res = await addTransaction(form)
+      setTransactions([...transactions, res.data])
+    }
+    handleClose()
+  }
+
+  // Ask confirmation before delete
+  const handleDeleteClick = (id) => {
+    setDeleteId(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    await deleteTransaction(deleteId)
+    setTransactions(transactions.filter((t) => t.id !== deleteId))
+    setDeleteDialogOpen(false)
+    setDeleteId(null)
+  }
+
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc'
+    setOrder(isAsc ? 'desc' : 'asc')
+    setOrderBy(property)
+  }
+
+  const sortedTransactions = [...transactions].sort(
+    getComparator(order, orderBy)
+  )
+
+  return (
+    <Box p={3}>
+      <Typography variant="h6" gutterBottom>
+        Transaction List
+      </Typography>
+      <Button variant="contained" onClick={() => handleOpen()}>
+        Add Transaction
+      </Button>
+
+      {/* Loader */}
+      {loading ? (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper} sx={{mt: 2}}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                {['type', 'amount', 'category', 'date', 'description'].map(
+                  (col) => (
+                    <TableCell key={col}>
+                      <TableSortLabel
+                        active={orderBy === col}
+                        direction={orderBy === col ? order : 'asc'}
+                        onClick={() => handleRequestSort(col)}
+                      >
+                        {col.charAt(0).toUpperCase() + col.slice(1)}
+                      </TableSortLabel>
+                    </TableCell>
+                  )
+                )}
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedTransactions.map((t) => (
+                <TableRow key={t.id}>
+                  <TableCell>{t.type}</TableCell>
+                  <TableCell>${t.amount}</TableCell>
+                  <TableCell>{t.category}</TableCell>
+                  <TableCell>{t.date}</TableCell>
+                  <TableCell>{t.description}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => handleOpen(t)}>
+                      <Edit />
+                    </IconButton>
+                    <IconButton onClick={() => handleDeleteClick(t.id)}>
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>
+          {editingId ? 'Edit Transaction' : 'Add Transaction'}
+        </DialogTitle>
+        <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
+          <TextField
+            select
+            label="Type"
+            name="type"
+            value={form.type}
+            onChange={handleChange}
+            margin="dense"
+          >
+            <MenuItem value="Income">Income</MenuItem>
+            <MenuItem value="Expense">Expense</MenuItem>
+          </TextField>
+          <TextField
+            label="Amount"
+            name="amount"
+            type="number"
+            value={form.amount}
+            onChange={handleChange}
+            required
+          />
+          <TextField
+            label="Category"
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            required
+          />
+          <TextField
+            label="Date"
+            name="date"
+            type="date"
+            value={form.date}
+            onChange={handleChange}
+            InputLabelProps={{shrink: true}}
+            required
+          />
+          <TextField
+            label="Description"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            multiline
+            rows={2}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this transaction?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmDelete}>
+            Yes, Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
+}
+
+export default TransactionManager
