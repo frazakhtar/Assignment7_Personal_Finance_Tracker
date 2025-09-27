@@ -18,7 +18,7 @@ const PiChart = () => {
   ]
   const COLORS = ['#0088FE', '#00C49F', '#ff2857ff', '#42e6ffff']
   return (
-    <Card sx={{minWidth: {xs: '300px', md: '500px'}}}>
+    <Card sx={{minWidth: {xs: '300px', md: '560px'}}}>
       <CardContent>
         <Typography variant="subtitle2" mb={2}>
           Category-wise Expense Split

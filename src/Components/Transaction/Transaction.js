@@ -130,8 +130,6 @@ const TransactionManager = () => {
       <Button variant="contained" onClick={() => handleOpen()}>
         Add Transaction
       </Button>
-
-      {/* Loader */}
       {loading ? (
         <Box display="flex" justifyContent="center" mt={4}>
           <CircularProgress />

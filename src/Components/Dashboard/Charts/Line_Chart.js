@@ -19,7 +19,7 @@ const Line_Chart = () => {
     {month: 'June', amount: 800},
   ]
   return (
-    <Card sx={{minWidth: {xs: '300px', md: '500px'}}}>
+    <Card sx={{minWidth: {xs: '300px', md: '560px'}}}>
       <CardContent>
         <Typography variant="subtitle2" mb={2}>
           Monthly Spending Trend
