@@ -40,7 +40,7 @@ const TodaysTable = () => {
               <TableRow key={expense.id}>
                 <TableCell>{expense.amount}</TableCell>
                 <TableCell>{expense.category}</TableCell>
-                <TableCell>{expense.note}</TableCell>
+                <TableCell>{expense.description}</TableCell>
               </TableRow>
             ))}
           </TableBody>

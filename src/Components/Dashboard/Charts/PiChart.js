@@ -1,4 +1,5 @@
-import React from 'react'
+/*eslint-disable*/
+import React, {useMemo} from 'react'
 import {Card, CardContent, Typography} from '@mui/material'
 import {
   PieChart,
@@ -9,14 +10,37 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-const PiChart = () => {
-  const categorySplit = [
-    {name: 'Food', value: 1200},
-    {name: 'Transport', value: 800},
-    {name: 'Entertainment', value: 500},
-    {name: 'Bills', value: 700},
+const PiChart = ({transactions}) => {
+  const data = useMemo(() => {
+    const grouped = transactions.reduce((acc, t) => {
+      if (t.type === 'Expense') {
+        if (!acc[t.category]) acc[t.category] = 0
+        acc[t.category] += Number(t.amount)
+      }
+      return acc
+    }, {})
+
+    return Object.keys(grouped).map((category) => ({
+      name: category,
+      value: grouped[category],
+    }))
+  }, [transactions])
+  if (data.length === 0) {
+    return <p>No expense data available for selected period.</p>
+  }
+
+  const COLORS = [
+    '#0088FE',
+    '#00C49F',
+    '#FFBB28',
+    '#FF8042',
+    '#9C27B0',
+    '#FF5722',
+    '#4CAF50',
+    '#E91E63',
+    '#795548',
+    '#607D8B',
   ]
-  const COLORS = ['#0088FE', '#00C49F', '#ff2857ff', '#42e6ffff']
   return (
     <Card sx={{minWidth: {xs: '300px', md: '560px'}}}>
       <CardContent>
@@ -26,7 +50,7 @@ const PiChart = () => {
         <ResponsiveContainer width="100%" height={280}>
           <PieChart>
             <Pie
-              data={categorySplit}
+              data={data}
               dataKey="value"
               nameKey="name"
               cx="50%"
@@ -34,7 +58,7 @@ const PiChart = () => {
               outerRadius={80}
               label
             >
-              {categorySplit.map((entry, index) => (
+              {data.map((_, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}

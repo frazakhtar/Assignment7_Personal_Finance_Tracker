@@ -9,6 +9,7 @@
   ],
   "plugins": ["react", "prettier", "import"],
   "rules": {
+    "react/prop-types": "off",
     "prettier/prettier": "error",
     "no-unused-vars": "warn",
     "no-console": ["warn", { "allow": ["warn", "error"] }],
@@ -30,7 +31,6 @@
       }
     ],
     "react/jsx-boolean-value": ["error", "never"],
-    "react/jsx-curly-brace-presence": ["error", "never"],
     "import/no-unresolved": "error",
     "import/named": "error",
     "import/no-duplicates": "error",

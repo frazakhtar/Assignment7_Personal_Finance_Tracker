@@ -1,5 +1,5 @@
 import {Card, CardContent, Typography} from '@mui/material'
-import React from 'react'
+import React, {useMemo} from 'react'
 import {
   LineChart,
   Line,
@@ -9,15 +9,29 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-const Line_Chart = () => {
-  const monthlyTrend = [
-    {month: 'Jan', amount: 300},
-    {month: 'Feb', amount: 500},
-    {month: 'Mar', amount: 400},
-    {month: 'Apr', amount: 600},
-    {month: 'May', amount: 700},
-    {month: 'June', amount: 800},
-  ]
+const getMonthName = (dateStr) => {
+  const date = new Date(dateStr)
+  return date.toLocaleString('en-US', {month: 'short'})
+}
+
+const Line_Chart = ({transactions}) => {
+  const monthlyTrend = useMemo(() => {
+    const grouped = transactions.reduce((acc, t) => {
+      if (!t.date) return acc
+      const month = getMonthName(t.date)
+      if (!acc[month]) acc[month] = 0
+      if (t.type === 'Expense') {
+        acc[month] += Number(t.amount)
+      }
+      return acc
+    }, {})
+
+    return Object.keys(grouped).map((month) => ({
+      month,
+      amount: grouped[month],
+    }))
+  }, [transactions])
+
   return (
     <Card sx={{minWidth: {xs: '300px', md: '560px'}}}>
       <CardContent>

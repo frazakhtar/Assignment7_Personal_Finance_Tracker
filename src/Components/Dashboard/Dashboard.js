@@ -90,14 +90,14 @@ const Dashboard = () => {
             onChange={(e) => setEndDate(e.target.value)}
             InputLabelProps={{shrink: true}}
           />
-          <Button
+          {/* <Button
             variant="contained"
             onClick={() => {
               // trigger re-render, filtering is already reactive
             }}
           >
             Filter
-          </Button>
+          </Button> */}
         </Box>
 
         <Grid container spacing={3} mb={3} alignItems="stretch">
@@ -108,7 +108,7 @@ const Dashboard = () => {
             {label: 'Savings', value: summaryData.savings},
           ].map((item, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
-              <Card sx={{height: '100%', minWidth: '300px'}}>
+              <Card sx={{height: '100%', minWidth: '350px'}}>
                 <CardContent>
                   <Typography variant="subtitle2">{item.label}</Typography>
                   <Typography variant="h6">${item.value}</Typography>
