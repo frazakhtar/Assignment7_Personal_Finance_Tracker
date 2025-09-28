@@ -1,4 +1,5 @@
 import React from 'react'
+import {useSelector} from 'react-redux'
 import {
   Card,
   CardContent,
@@ -11,11 +12,15 @@ import {
 } from '@mui/material'
 
 const TodaysTable = () => {
-  const expensesToday = [
-    {id: 1, amount: 20, category: 'Food', note: 'Lunch'},
-    {id: 2, amount: 50, category: 'Transport', note: 'Taxi'},
-    {id: 3, amount: 100, category: 'Bills', note: 'Electricity'},
-  ]
+  const {items: transactions} = useSelector((state) => state.transactions)
+
+  const today = new Date().toLocaleDateString('en-CA')
+
+  console.log('Today', today)
+
+  const expensesToday = transactions.filter(
+    (t) => t.type === 'Expense' && t.date === today
+  )
   return (
     <Card>
       <CardContent>

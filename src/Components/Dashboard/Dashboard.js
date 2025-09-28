@@ -1,4 +1,5 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState, useMemo} from 'react'
+import {useDispatch, useSelector} from 'react-redux'
 import {
   Box,
   Container,
@@ -13,17 +14,55 @@ import {
 import PiChart from './Charts/PiChart'
 import Line_Chart from './Charts/Line_Chart'
 import TodaysTable from './TodaysTable'
+import {fetchTransactions} from '../../slices/transactionSlice'
 
 const Dashboard = () => {
+  const dispatch = useDispatch()
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
-  // @fz-comment : Sample api data
+  const {items: transactions} = useSelector((state) => state.transactions)
+
+  useEffect(() => {
+    dispatch(fetchTransactions())
+  }, [dispatch])
+
+  const filteredTransactions = useMemo(() => {
+    if (!startDate && !endDate) {
+      return transactions
+    }
+
+    return transactions.filter((t) => {
+      const txDate = new Date(t.date)
+      const from = startDate ? new Date(startDate) : null
+      const to = endDate ? new Date(endDate) : null
+
+      if (from && txDate < from) {
+        return false
+      }
+      if (to && txDate > to) {
+        return false
+      }
+      return true
+    })
+  }, [transactions, startDate, endDate])
+
+  const income = filteredTransactions
+    .filter((t) => t.type === 'Income')
+    .reduce((sum, t) => sum + Number(t.amount), 0)
+
+  const expenses = filteredTransactions
+    .filter((t) => t.type === 'Expense')
+    .reduce((sum, t) => sum + Number(t.amount), 0)
+
+  const remaining = income - expenses
+  const savings = remaining * 0.2
+
   const summaryData = {
-    income: 5000,
-    expenses: 3200,
-    remaining: 1800,
-    savings: 1000,
+    income,
+    expenses,
+    remaining,
+    savings,
   }
 
   return (
@@ -51,19 +90,17 @@ const Dashboard = () => {
             onChange={(e) => setEndDate(e.target.value)}
             InputLabelProps={{shrink: true}}
           />
-          <Button variant="contained">Filter</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              // trigger re-render, filtering is already reactive
+            }}
+          >
+            Filter
+          </Button>
         </Box>
-        <Grid
-          container
-          spacing={3}
-          mb={3}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          alignItems="stretch"
-        >
+
+        <Grid container spacing={3} mb={3} alignItems="stretch">
           {[
             {label: 'Total Income', value: summaryData.income},
             {label: 'Total Expenses', value: summaryData.expenses},
@@ -81,19 +118,15 @@ const Dashboard = () => {
           ))}
         </Grid>
 
-        <Grid
-          container
-          spacing={3}
-          mb={3}
-          sx={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}
-        >
+        <Grid container spacing={3} mb={3}>
           <Grid item xs={12} md={6}>
-            <Line_Chart />
+            <Line_Chart transactions={filteredTransactions} />
           </Grid>
           <Grid item xs={12} md={6}>
-            <PiChart />
+            <PiChart transactions={filteredTransactions} />
           </Grid>
         </Grid>
+
         <TodaysTable />
       </Container>
     </Box>

@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react'
+import {useDispatch, useSelector} from 'react-redux'
 import {
   Box,
   Button,
@@ -21,12 +22,13 @@ import {
   CircularProgress,
 } from '@mui/material'
 import {Edit, Delete} from '@mui/icons-material'
+
 import {
-  getTransactions,
-  addTransaction,
-  updateTransaction,
-  deleteTransaction,
-} from '../../api/transactions'
+  createTransaction,
+  editTransaction,
+  fetchTransactions,
+  removeTransaction,
+} from '../../slices/transactionSlice'
 
 // Utility for sorting
 const getComparator = (order, orderBy) => {
@@ -36,9 +38,11 @@ const getComparator = (order, orderBy) => {
 }
 
 const TransactionManager = () => {
-  const [transactions, setTransactions] = useState([])
+  const dispatch = useDispatch()
+  const {items: transactions, loading} = useSelector(
+    (state) => state.transactions
+  )
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({
     type: 'Expense',
@@ -56,11 +60,8 @@ const TransactionManager = () => {
   const [deleteId, setDeleteId] = useState(null)
 
   useEffect(() => {
-    getTransactions()
-      .then((res) => setTransactions(res.data))
-      .catch((err) => console.log(err))
-      .finally(() => setLoading(false))
-  }, [])
+    dispatch(fetchTransactions())
+  }, [dispatch])
 
   const handleChange = (e) => {
     setForm({...form, [e.target.name]: e.target.value})
@@ -86,17 +87,13 @@ const TransactionManager = () => {
 
   const handleClose = () => setOpen(false)
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (editingId) {
-      const res = await updateTransaction(editingId, form)
-      setTransactions(
-        transactions.map((t) => (t.id === editingId ? res.data : t))
-      )
+      dispatch(editTransaction({id: editingId, data: form}))
     } else {
-      const res = await addTransaction(form)
-      setTransactions([...transactions, res.data])
+      dispatch(createTransaction(form))
     }
-    handleClose()
+    setOpen(false)
   }
 
   // Ask confirmation before delete
@@ -105,9 +102,8 @@ const TransactionManager = () => {
     setDeleteDialogOpen(true)
   }
 
-  const confirmDelete = async () => {
-    await deleteTransaction(deleteId)
-    setTransactions(transactions.filter((t) => t.id !== deleteId))
+  const confirmDelete = () => {
+    dispatch(removeTransaction(deleteId))
     setDeleteDialogOpen(false)
     setDeleteId(null)
   }
