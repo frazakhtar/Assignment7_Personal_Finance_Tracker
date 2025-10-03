@@ -8,7 +8,6 @@ import {
   CardContent,
   Typography,
   TextField,
-  Button,
 } from '@mui/material'
 
 import PiChart from './Charts/PiChart'
@@ -37,12 +36,8 @@ const Dashboard = () => {
       const from = startDate ? new Date(startDate) : null
       const to = endDate ? new Date(endDate) : null
 
-      if (from && txDate < from) {
-        return false
-      }
-      if (to && txDate > to) {
-        return false
-      }
+      if (from && txDate < from) return false
+      if (to && txDate > to) return false
       return true
     })
   }, [transactions, startDate, endDate])
@@ -68,56 +63,75 @@ const Dashboard = () => {
   return (
     <Box display="flex" flexDirection="column" minHeight="100vh">
       <Container sx={{mt: 4, mb: 4, flex: 1}}>
-        <Box
-          mb={3}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          gap={2}
-          flexWrap="wrap"
+        {/* Header Card */}
+        <Card
+          sx={{
+            mb: 3,
+            p: 2,
+            borderRadius: '50px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
         >
-          <TextField
-            label="Start Date"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            InputLabelProps={{shrink: true}}
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{shrink: true}}
-          />
-          {/* <Button
-            variant="contained"
-            onClick={() => {
-              // trigger re-render, filtering is already reactive
-            }}
-          >
-            Filter
-          </Button> */}
-        </Box>
+          <Typography variant="h5" fontWeight="bold">
+            Dashboard
+          </Typography>
 
-        <Grid container spacing={3} mb={3} alignItems="stretch">
+          <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+            <TextField
+              label="Start Date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              InputLabelProps={{shrink: true}}
+              size="small"
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{shrink: true}}
+              size="small"
+            />
+          </Box>
+        </Card>
+
+        {/* Summary Cards */}
+        <Grid
+          container
+          mb={3}
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr', // 1 card per row on mobile
+              sm: '1fr 1fr', // 2 cards per row on tablets
+              md: 'repeat(4, 1fr)', // 4 equal cards on desktop
+            },
+            gap: 2, // tighter spacing
+          }}
+        >
           {[
             {label: 'Total Income', value: summaryData.income},
             {label: 'Total Expenses', value: summaryData.expenses},
             {label: 'Remaining Budget', value: summaryData.remaining},
             {label: 'Savings', value: summaryData.savings},
           ].map((item, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Card sx={{height: '100%', minWidth: '350px'}}>
-                <CardContent>
-                  <Typography variant="subtitle2">{item.label}</Typography>
-                  <Typography variant="h6">${item.value}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+            <Card
+              key={index}
+              sx={{borderRadius: '1rem', height: '100%', width: '100%'}}
+            >
+              <CardContent>
+                <Typography variant="subtitle2">{item.label}</Typography>
+                <Typography variant="h6">${item.value}</Typography>
+              </CardContent>
+            </Card>
           ))}
         </Grid>
 
+        {/* Charts */}
         <Grid container spacing={3} mb={3}>
           <Grid item xs={12} md={6}>
             <Line_Chart transactions={filteredTransactions} />
@@ -127,6 +141,7 @@ const Dashboard = () => {
           </Grid>
         </Grid>
 
+        {/* Table */}
         <TodaysTable />
       </Container>
     </Box>

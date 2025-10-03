@@ -1,4 +1,6 @@
 import React, {useEffect, useState} from 'react'
+import {toast, ToastContainer} from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import {useDispatch, useSelector} from 'react-redux'
 import {
   Box,
@@ -42,6 +44,8 @@ const TransactionManager = () => {
   const {items: transactions, loading} = useSelector(
     (state) => state.transactions
   )
+  const {items: budgets} = useSelector((state) => state.budgets) // 👈 get budgets from Redux
+
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({
@@ -55,7 +59,6 @@ const TransactionManager = () => {
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState('date')
 
-  // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
 
@@ -90,13 +93,35 @@ const TransactionManager = () => {
   const handleSave = () => {
     if (editingId) {
       dispatch(editTransaction({id: editingId, data: form}))
+      toast.success('Transaction updated successfully!')
     } else {
       dispatch(createTransaction(form))
+      toast.success('Transaction added successfully!')
+
+      if (form.type === 'Expense') {
+        const budget = budgets.find((b) => b.category === form.category)
+        if (budget) {
+          const spent = transactions
+            .filter((t) => t.category === form.category && t.type === 'Expense')
+            .reduce((sum, t) => sum + Number(t.amount), 0)
+
+          const newTotal = spent + Number(form.amount)
+
+          if (newTotal > budget.budget) {
+            toast.error(
+              `Overspending Alert! ${form.category} budget exceeded. (Budget: ₹${budget.budget}, Spent: ₹${newTotal})`
+            )
+          } else if (newTotal > budget.budget * 0.8) {
+            toast.warn(
+              `Warning: You are close to exceeding the ${form.category} budget! (Spent: ₹${newTotal} / Budget: ₹${budget.budget})`
+            )
+          }
+        }
+      }
     }
     setOpen(false)
   }
 
-  // Ask confirmation before delete
   const handleDeleteClick = (id) => {
     setDeleteId(id)
     setDeleteDialogOpen(true)
@@ -104,6 +129,7 @@ const TransactionManager = () => {
 
   const confirmDelete = () => {
     dispatch(removeTransaction(deleteId))
+    toast.error('Transaction deleted!')
     setDeleteDialogOpen(false)
     setDeleteId(null)
   }
@@ -174,7 +200,6 @@ const TransactionManager = () => {
         </TableContainer>
       )}
 
-      {/* Add/Edit Dialog */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
           {editingId ? 'Edit Transaction' : 'Add Transaction'}
@@ -231,8 +256,6 @@ const TransactionManager = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -250,6 +273,7 @@ const TransactionManager = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <ToastContainer position="top-right" autoClose={3000} />
     </Box>
   )
 }

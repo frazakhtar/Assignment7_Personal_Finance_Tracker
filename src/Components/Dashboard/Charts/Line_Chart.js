@@ -33,12 +33,12 @@ const Line_Chart = ({transactions}) => {
   }, [transactions])
 
   return (
-    <Card sx={{minWidth: {xs: '300px', md: '560px'}}}>
+    <Card sx={{minWidth: {xs: '300px', md: '495px'}}}>
       <CardContent>
         <Typography variant="subtitle2" mb={2}>
           Monthly Spending Trend
         </Typography>
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height={435}>
           <LineChart data={monthlyTrend}>
             <XAxis dataKey="month" />
             <YAxis />

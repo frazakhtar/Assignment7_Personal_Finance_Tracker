@@ -1,21 +1,22 @@
-/*eslint-disable*/
+/* eslint-disable */
 import React, {useMemo} from 'react'
-import {Card, CardContent, Typography} from '@mui/material'
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
+import {Card, CardContent, Typography, Chip, Box} from '@mui/material'
+import {PieChart, Pie, Cell, Tooltip, ResponsiveContainer} from 'recharts'
 
-const PiChart = ({transactions}) => {
+const COLORS = [
+  '#2E7D32',
+  '#81C784',
+  '#0288D1',
+  '#FFD54F',
+  '#F06292',
+  '#6A1B9A',
+]
+
+const ExpensePieChart = ({transactions}) => {
   const data = useMemo(() => {
     const grouped = transactions.reduce((acc, t) => {
       if (t.type === 'Expense') {
-        if (!acc[t.category]) acc[t.category] = 0
-        acc[t.category] += Number(t.amount)
+        acc[t.category] = (acc[t.category] || 0) + Number(t.amount)
       }
       return acc
     }, {})
@@ -25,53 +26,75 @@ const PiChart = ({transactions}) => {
       value: grouped[category],
     }))
   }, [transactions])
-  if (data.length === 0) {
-    return <p>No expense data available for selected period.</p>
-  }
 
-  const COLORS = [
-    '#0088FE',
-    '#00C49F',
-    '#FFBB28',
-    '#FF8042',
-    '#9C27B0',
-    '#FF5722',
-    '#4CAF50',
-    '#E91E63',
-    '#795548',
-    '#607D8B',
-  ]
+  const renderLabel = ({name, percent}) =>
+    `${name} (${(percent * 100).toFixed(0)}%)`
+
   return (
     <Card sx={{minWidth: {xs: '300px', md: '560px'}}}>
-      <CardContent>
-        <Typography variant="subtitle2" mb={2}>
+      <CardContent sx={{pb: 1}}>
+        {' '}
+        <Typography variant="subtitle2" mb={1}>
           Category-wise Expense Split
         </Typography>
-        <ResponsiveContainer width="100%" height={280}>
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={80}
-              label
+        {data.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No expense data available for selected period.
+          </Typography>
+        ) : (
+          <>
+            <ResponsiveContainer width="100%" height={340}>
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={140}
+                  label={renderLabel}
+                >
+                  {data.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+
+            <Box
+              mt={1}
+              p={1.5}
+              sx={{
+                backgroundColor: '#F5F5F5',
+                borderRadius: 2,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1,
+                justifyContent: 'center',
+                maxWidth: '600px',
+              }}
             >
-              {data.map((_, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
+              {data.map((entry, index) => (
+                <Chip
+                  key={entry.name}
+                  label={entry.name}
+                  sx={{
+                    backgroundColor: COLORS[index % COLORS.length],
+                    color: '#fff',
+                    fontWeight: 500,
+                  }}
                 />
               ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+            </Box>
+          </>
+        )}
       </CardContent>
     </Card>
   )
 }
 
-export default PiChart
+export default ExpensePieChart
